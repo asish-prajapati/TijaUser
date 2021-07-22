@@ -6,7 +6,7 @@ import {CartStateContext} from '../App';
 export default function PaymentStatus({navigation, route}) {
   const {txStatus, paymentMode, orderAmount} = route.params;
 
-  const {emptyCart, setCartLength} = useContext(CartContext);
+  const {emptyCart, emptyCartLength} = useContext(CartContext);
   const {state} = useContext(CartStateContext);
   return (
     <>
@@ -16,9 +16,13 @@ export default function PaymentStatus({navigation, route}) {
           title="Go to Home"
           onPress={() => {
             if (txStatus == 'SUCCESS') {
-              setCartLength(0);
+              emptyCartLength(0);
+              emptyCart();
+
+              navigation.navigate('Home');
+            } else {
+              navigation.navigate('Home');
             }
-            navigation.navigate('Home');
           }}></Button>
         <Text style={{color: 'green'}}>{txStatus}</Text>
         <Text style={{color: 'black'}}>Status : {txStatus}</Text>

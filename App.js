@@ -10,13 +10,15 @@ import {
   EditProfile,
   SingleOrderHistory,
   PaymentStatus,
+  Cart,
 } from './screens';
+import MainLoader from './loaders/MainLoader';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import Cart from './screens/Cart';
+
 import {startAsync, getCartLen, setCartInitial} from './helpers/appHelpers';
-import MainLoader from './loaders/MainLoader';
+
 import messaging from '@react-native-firebase/messaging';
 const AuthContext = React.createContext();
 const CartContext = React.createContext();
@@ -24,6 +26,116 @@ const CartStateContext = React.createContext();
 const Stack = createStackNavigator();
 
 function App() {
+  const initialState = {
+    isLoading: true,
+    isSignout: false,
+    userToken: null,
+    cart: [],
+    cartLength: 0,
+  };
+
+  const reducer = (prevState, action) => {
+    switch (action.type) {
+      case 'RESTORE_TOKEN':
+        return {
+          ...prevState,
+          userToken: action.token,
+          isLoading: false,
+        };
+      case 'SIGN_IN':
+        return {
+          ...prevState,
+          isSignout: false,
+          userToken: action.token,
+        };
+      case 'SIGN_OUT':
+        return {
+          ...prevState,
+          isSignout: true,
+          userToken: null,
+        };
+      case 'SET_CART':
+        return {
+          ...prevState,
+          cart: action.cart,
+        };
+      case 'SET_CART_LENGTH':
+        return {
+          ...prevState,
+          cartLength: action.lnth,
+        };
+      case 'EMPTY_CART':
+        return {
+          ...prevState,
+          cart: [],
+        };
+    }
+  };
+
+  const [state, dispatch] = React.useReducer(reducer, initialState);
+
+  const authContext = React.useMemo(
+    () => ({
+      signIn: async data => {
+        dispatch({type: 'SIGN_IN', token: data.token});
+      },
+      signOut: () => dispatch({type: 'SIGN_OUT'}),
+      refreshToken: async data => {
+        dispatch({type: 'RESTORE_TOKEN', token: 'newtoken'});
+      },
+    }),
+    [],
+  );
+  const cartContext = React.useMemo(
+    () => ({
+      emptyCart: async data => {
+        dispatch({type: 'EMPTY_CART'});
+      },
+      emptyCartLength: async data => {
+        dispatch({type: 'SET_CART_LENGTH', lnth: data});
+      },
+
+      setCartLength: async data => {
+        let userToken;
+        userToken = await AsyncStorage.getItem('token');
+        axios
+          .get('http://143.110.244.110/tija/frontuser/viewcart', {
+            headers: {Authorization: `Bearer ${userToken}`},
+          })
+
+          .then(res => {
+            // dispatch({type: 'SET_CART', cart: res.data.data});
+            dispatch({type: 'SET_CART_LENGTH', lnth: res.data.data.length});
+          });
+      },
+      getCart: async data => {
+        let userToken;
+        userToken = await AsyncStorage.getItem('token');
+        axios
+          .get('http://143.110.244.110/tija/frontuser/viewcart', {
+            headers: {Authorization: `Bearer ${userToken}`},
+          })
+          .then(res => {
+            dispatch({type: 'SET_CART', cart: res.data});
+          });
+      },
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    startAsync(dispatch);
+  }, []);
+  useEffect(() => {
+    if (state.userToken) {
+      getCartLen(dispatch);
+    }
+  }, [state.userToken]);
+  useEffect(() => {
+    if (state.userToken) {
+      setCartInitial(dispatch);
+    }
+  }, [state.userToken]);
   messaging().setBackgroundMessageHandler(async remoteMessage => {
     console.log('Message handled in the background!', remoteMessage);
   });
@@ -75,115 +187,6 @@ function App() {
         }
       });
   }, []);
-
-  const initialState = {
-    isLoading: true,
-    isSignout: false,
-    userToken: null,
-    cart: [],
-    cartLength: 0,
-  };
-
-  const reducer = (prevState, action) => {
-    switch (action.type) {
-      case 'RESTORE_TOKEN':
-        return {
-          ...prevState,
-          userToken: action.token,
-          isLoading: false,
-        };
-      case 'SIGN_IN':
-        return {
-          ...prevState,
-          isSignout: false,
-          userToken: action.token,
-        };
-      case 'SIGN_OUT':
-        return {
-          ...prevState,
-          isSignout: true,
-          userToken: null,
-        };
-      case 'SET_CART':
-        return {
-          ...prevState,
-          cart: action.cart,
-        };
-      case 'EMPTY_CART':
-        return {
-          ...prevState,
-          cart: [],
-        };
-      case 'UPDATE_CART':
-        return {
-          ...prevState,
-          cart: action.cart,
-        };
-      case 'SET_CART_LENGTH':
-        return {
-          ...prevState,
-          cartLength: action.lnth,
-        };
-    }
-  };
-
-  const [state, dispatch] = React.useReducer(reducer, initialState);
-
-  const authContext = React.useMemo(
-    () => ({
-      signIn: async data => {
-        dispatch({type: 'SIGN_IN', token: data.token});
-      },
-      signOut: () => dispatch({type: 'SIGN_OUT'}),
-      refreshToken: async data => {
-        dispatch({type: 'RESTORE_TOKEN', token: 'newtoken'});
-      },
-    }),
-    [],
-  );
-  const cartContext = React.useMemo(
-    () => ({
-      addCart: async data => {
-        dispatch({type: 'SET_CART', cart: data.cart});
-      },
-
-      emptyCart: async data => {
-        dispatch({type: 'EMPTY_CART', cart: []});
-      },
-      updateCart: async data => {
-        dispatch({type: 'UPDATE_CART', cart: data.cart});
-      },
-      setCartLength: data => {
-        dispatch({type: 'SET_CART_LENGTH', lnth: data});
-      },
-      getCart: async data => {
-        let userToken;
-        userToken = await AsyncStorage.getItem('token');
-        axios
-          .get('http://143.110.244.110/tija/frontuser/viewcart', {
-            headers: {Authorization: `Bearer ${userToken}`},
-          })
-          .then(res => {
-            dispatch({type: 'SET_CART', cart: res.data});
-          });
-      },
-    }),
-    [],
-  );
-
-  useEffect(() => {
-    startAsync(dispatch);
-  }, []);
-  useEffect(() => {
-    if (state.userToken) {
-      getCartLen(dispatch);
-    }
-  }, [state.cart, state.userToken]);
-  useEffect(() => {
-    if (state.userToken) {
-      setCartInitial(dispatch);
-    }
-  }, [state.userToken]);
 
   if (state.isLoading == true) {
     return <MainLoader />;

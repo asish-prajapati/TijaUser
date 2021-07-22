@@ -9,14 +9,15 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {AuthContext} from '../App';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {COLORS} from '../constants';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import axios from 'axios';
-import {BarIndicator} from 'react-native-indicators';
+import MainLoader from '../loaders/MainLoader';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getProfile} from '../helpers/profileHelpers';
 
 export default function Profile({navigation}) {
   const {signOut} = React.useContext(AuthContext);
+  const [loading, setLoading] = React.useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [mobile, setMobile] = useState('');
@@ -31,32 +32,21 @@ export default function Profile({navigation}) {
   };
 
   React.useEffect(() => {
-    const getProfile = async () => {
-      let userToken;
-      userToken = await AsyncStorage.getItem('token');
-      axios
-        .get('http://143.110.244.110/tija/frontuser/updateuserprofile', {
-          headers: {Authorization: `Bearer ${userToken}`},
-        })
-
-        .then(res => {
-          setMobile(res.data.mobile);
-          setImage(res.data.image);
-          setName(res.data.name);
-          setEmail(res.data.email);
-        });
-    };
-
-    const unsubscribe = navigation.addListener('focus', () => {
-      getProfile();
+    const unsubscribe = navigation.addListener('focus', async () => {
+      let response = await getProfile();
+      setMobile(response.mobile);
+      setImage(response.image);
+      setName(response.name);
+      setEmail(response.email);
+      setLoading(false);
     });
     return unsubscribe;
   }, [navigation]);
   return (
     <>
       <StatusBar backgroundColor="white" />
-      {!image ? (
-        <BarIndicator color="coral" />
+      {loading ? (
+        <MainLoader />
       ) : (
         <View style={styles.container}>
           <View style={styles.profileDetail}>

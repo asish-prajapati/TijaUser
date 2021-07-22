@@ -8,6 +8,7 @@ import Profile from './Profile';
 import EditProfile from './EditProfile';
 import SingleOrderHistory from './SingleOrderHistory';
 import PaymentStatus from './PaymentStatus';
+import Cart from './Cart';
 
 export {
   Home,
@@ -20,4 +21,5 @@ export {
   EditProfile,
   SingleOrderHistory,
   PaymentStatus,
+  Cart,
 };

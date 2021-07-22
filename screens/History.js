@@ -9,13 +9,14 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import MainLoader from '../loaders/MainLoader';
 import IconFA from 'react-native-vector-icons/FontAwesome';
 import {getOrders} from '../helpers/historyHelpers';
 
 export default function History({navigation}) {
   const [orders, setOrders] = React.useState([]);
   const [refreshing, setRefreshing] = React.useState(false);
-
+  const [loading, setLoading] = React.useState(true);
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     let response = await getOrders();
@@ -27,6 +28,7 @@ export default function History({navigation}) {
     const unsubscribe = navigation.addListener('focus', async () => {
       let response = await getOrders();
       setOrders(response.data);
+      setLoading(false);
     });
     return unsubscribe;
   }, [navigation]);
@@ -34,130 +36,142 @@ export default function History({navigation}) {
   return (
     <>
       <StatusBar />
-      <View style={styles.container}>
-        <ScrollView
-          style={{flex: 1, marginTop: 20}}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }>
-          {orders.length > 0 ? (
-            orders.map((order, index) => (
-              <TouchableOpacity
-                key={index}
-                style={cardStyle.card}
-                onPress={() => {
-                  navigation.navigate('SingleOrderHistory', {
-                    products: order,
-                  });
-                }}>
-                <View style={cardStyle.cardUpper}>
-                  <View style={cardStyle.cuLeft}>
-                    <View style={cardStyle.imgWrapper}>
-                      <Image
-                        source={{uri: order.branchimage}}
-                        style={cardStyle.image}
-                      />
-                    </View>
-                    <View style={cardStyle.orderDetail}>
-                      <View>
-                        <Text style={cardStyle.title}>{order.branchname}</Text>
-                        <Text style={cardStyle.subTitle}>
-                          Order Id : {order.order_id}
-                        </Text>
-                        <View
-                          style={{
-                            flexDirection: 'row',
-
-                            alignItems: 'center',
-                          }}>
-                          <Text style={cardStyle.subTitle}>
-                            Payment Status :
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 15,
-                              color:
-                                order.payment_status == 'success'
-                                  ? 'green'
-                                  : 'red',
-                            }}>
-                            {order.payment_status}
-                          </Text>
-                        </View>
+      {loading ? (
+        <MainLoader />
+      ) : (
+        <View style={styles.container}>
+          <ScrollView
+            style={{flex: 1, marginTop: 20}}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }>
+            {orders.length > 0 ? (
+              orders.map((order, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={cardStyle.card}
+                  onPress={() => {
+                    navigation.navigate('SingleOrderHistory', {
+                      products: order,
+                    });
+                  }}>
+                  <View style={cardStyle.cardUpper}>
+                    <View style={cardStyle.cuLeft}>
+                      <View style={cardStyle.imgWrapper}>
+                        <Image
+                          source={{uri: order.branchimage}}
+                          style={cardStyle.image}
+                        />
                       </View>
-                      <Text style={cardStyle.subTitle}>
-                        Payment Id : {order.payment_id}
+                      <View style={cardStyle.orderDetail}>
+                        <View>
+                          <Text style={cardStyle.title}>
+                            {order.branchname}
+                          </Text>
+                          <Text style={cardStyle.subTitle}>
+                            Order Id : {order.order_id}
+                          </Text>
+                          <View
+                            style={{
+                              flexDirection: 'row',
+
+                              alignItems: 'center',
+                            }}>
+                            <Text style={cardStyle.subTitle}>
+                              Payment Status :
+                            </Text>
+                            <Text
+                              style={{
+                                fontSize: 15,
+                                color:
+                                  order.payment_status == 'success'
+                                    ? 'green'
+                                    : 'red',
+                              }}>
+                              {order.payment_status}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={cardStyle.subTitle}>
+                          Payment Id : {order.payment_id}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={cardStyle.cuRight}>
+                      <View style={styles.priceTotal}>
+                        <IconFA
+                          name="rupee"
+                          size={15}
+                          style={styles.rupeeIcon}
+                        />
+                        <Text style={cardStyle.price}>
+                          {order.productprice}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={cardStyle.cardBottom}>
+                    <View>
+                      <Text style={cardStyle.orderOn}>ORDERED ON</Text>
+                      <Text style={cardStyle.orderDate}>
+                        {order.orderdate} at {order.ordertime}
+                      </Text>
+                    </View>
+                    <View style={cardStyle.delivered}>
+                      <Text
+                        style={[
+                          cardStyle.deliveredText,
+                          order.status == 'Cancled' || order.status == 'Pending'
+                            ? cardStyle.deliveredTextRed
+                            : cardStyle.deliveredTextGreen,
+                        ]}>
+                        {order.status}
                       </Text>
                     </View>
                   </View>
-                  <View style={cardStyle.cuRight}>
-                    <View style={styles.priceTotal}>
-                      <IconFA name="rupee" size={15} style={styles.rupeeIcon} />
-                      <Text style={cardStyle.price}>{order.productprice}</Text>
-                    </View>
-                  </View>
-                </View>
-                <View style={cardStyle.cardBottom}>
-                  <View>
-                    <Text style={cardStyle.orderOn}>ORDERED ON</Text>
-                    <Text style={cardStyle.orderDate}>
-                      {order.orderdate} at {order.ordertime}
-                    </Text>
-                  </View>
-                  <View style={cardStyle.delivered}>
-                    <Text
-                      style={[
-                        cardStyle.deliveredText,
-                        order.status == 'Cancled' || order.status == 'Pending'
-                          ? cardStyle.deliveredTextRed
-                          : cardStyle.deliveredTextGreen,
-                      ]}>
-                      {order.status}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
 
-                height: 500,
-              }}>
-              <Text
-                style={{
-                  fontFamily: 'Montserrat-Bold',
-                  fontSize: 22,
-                  color: 'grey',
-                  marginBottom: 50,
-                }}>
-                Nothing in Order History
-              </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Order')}
-                style={{
-                  borderColor: 'coral',
-                  borderWidth: 0.5,
-                  padding: 10,
-                  borderRadius: 5,
-                  backgroundColor: 'pink',
-                  elevation: 4,
+                  height: 500,
                 }}>
                 <Text
                   style={{
                     fontFamily: 'Montserrat-Bold',
-                    fontSize: 15,
-                    color: 'red',
+                    fontSize: 22,
+                    color: 'grey',
+                    marginBottom: 50,
                   }}>
-                  Make Some Orders
+                  Nothing in Order History
                 </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </ScrollView>
-      </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Order')}
+                  style={{
+                    borderColor: 'coral',
+                    borderWidth: 0.5,
+                    padding: 10,
+                    borderRadius: 5,
+                    backgroundColor: 'pink',
+                    elevation: 4,
+                  }}>
+                  <Text
+                    style={{
+                      fontFamily: 'Montserrat-Bold',
+                      fontSize: 15,
+                      color: 'red',
+                    }}>
+                    Make Some Orders
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      )}
     </>
   );
 }

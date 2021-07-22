@@ -30,7 +30,7 @@ export default function Menu({route, navigation}) {
   const {branch} = route.params;
   const {state} = useContext(CartStateContext);
   const [spinner, setSpinner] = useState(false);
-  const {getCart} = useContext(CartContext);
+  const {getCart, setCartLength} = useContext(CartContext);
 
   const onSelectCategory = id => {
     //filter restaurants
@@ -44,7 +44,8 @@ export default function Menu({route, navigation}) {
     let res = await addToCart(id);
 
     if (res.success == true) {
-      getCart();
+      await getCart();
+      await setCartLength();
       setSpinner(false);
     } else {
       alert('Items of Another Branch already in Cart. Clear Cart First .');
@@ -56,6 +57,7 @@ export default function Menu({route, navigation}) {
     const res = await QuantityUpdate(type, id);
     if (res == true) {
       await getCart();
+      await setCartLength();
       setSpinner(false);
     } else {
       setSpinner(false);
