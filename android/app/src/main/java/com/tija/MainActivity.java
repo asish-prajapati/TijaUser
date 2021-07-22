@@ -1,5 +1,5 @@
 package com.tija;
-
+import com.cashfree.reactlibrary.RNPgReactNativeSdkPackage;
 import com.facebook.react.ReactActivity;
 
 public class MainActivity extends ReactActivity {

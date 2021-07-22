@@ -1,8 +1,7 @@
 rootProject.name = 'tija'
 include ':react-native-pg-react-native-sdk'
 project(':react-native-pg-react-native-sdk').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-pg-react-native-sdk/android')
-include ':react-native-pg-react-native-sdk'
-project(':react-native-pg-react-native-sdk').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-pg-react-native-sdk/android')
+
 
 include ':react-native-snackbar'
 project(':react-native-snackbar').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-snackbar/android')

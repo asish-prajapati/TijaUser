@@ -17,13 +17,65 @@ import axios from 'axios';
 import Cart from './screens/Cart';
 import {startAsync, getCartLen, setCartInitial} from './helpers/appHelpers';
 import MainLoader from './loaders/MainLoader';
-
+import messaging from '@react-native-firebase/messaging';
 const AuthContext = React.createContext();
 const CartContext = React.createContext();
 const CartStateContext = React.createContext();
 const Stack = createStackNavigator();
 
 function App() {
+  messaging().setBackgroundMessageHandler(async remoteMessage => {
+    console.log('Message handled in the background!', remoteMessage);
+  });
+
+  useEffect(() => {
+    // Get the device token
+    messaging()
+      .getToken()
+      .then(async app_id => {
+        let fcmtoken;
+        fcmtoken = await AsyncStorage.setItem('app_id', app_id);
+      })
+      .catch(e => {
+        alert(e);
+      });
+
+    // If using other push notification providers (ie Amazon SNS, etc)
+    // you may need to get the APNs token instead for iOS:
+    // if(Platform.OS == 'ios') { messaging().getAPNSToken().then(token => { return saveTokenToDatabase(token); }); }
+
+    // Listen to whether the token changes
+    return messaging().onTokenRefresh(async app_id => {
+      let fcmtoken;
+      fcmtoken = await AsyncStorage.setItem('app_id', app_id);
+    });
+  }, []);
+
+  useEffect(() => {
+    // Assume a message-notification contains a "type" property in the data payload of the screen to open
+
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log(
+        'Notification caused app to open from background state:',
+        remoteMessage.notification,
+      );
+      navigation.navigate(remoteMessage.data.type);
+    });
+
+    // Check whether an initial notification is available
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage.notification,
+          );
+          setInitialRoute(remoteMessage.data.type); // e.g. "Settings"
+        }
+      });
+  }, []);
+
   const initialState = {
     isLoading: true,
     isSignout: false,
@@ -74,6 +126,7 @@ function App() {
         };
     }
   };
+
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
   const authContext = React.useMemo(

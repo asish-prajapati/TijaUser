@@ -1,13 +1,27 @@
 import axios from 'axios';
 import {setToken} from './asyncStorage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const sendOTP = (mobile, navigation) => {
+const sendOTP = async (mobile, navigation) => {
+  const getAppid = async () => {
+    let app_id;
+    try {
+      app_id = await AsyncStorage.getItem('app_id');
+      return app_id;
+    } catch (e) {
+      alert('geting token failed');
+    }
+  };
+  const appid = await getAppid();
+  console.log(appid);
+
   var pattern = /^[6789]\d{9}$/;
 
   if (pattern.test(mobile)) {
     axios
       .post('http://143.110.244.110/tija/frontuser/loginuser', {
         mobile: mobile,
+        appid: appid,
       })
       .then(response => {
         response = response.data[0];
