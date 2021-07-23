@@ -55,6 +55,8 @@ export default function Menu({route, navigation}) {
   const handleQuantityUpdate = async (type, id) => {
     setSpinner(true);
     const res = await QuantityUpdate(type, id);
+    await console.log(res);
+
     if (res == true) {
       await getCart();
       await setCartLength();

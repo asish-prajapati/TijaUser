@@ -7,6 +7,8 @@ import {
   StatusBar,
   Image,
   ScrollView,
+  Modal,
+  Pressable,
 } from 'react-native';
 import axios from 'axios';
 import IconFA from 'react-native-vector-icons/FontAwesome';
@@ -27,21 +29,23 @@ import {
 export default function Cart({navigation}) {
   const {state} = useContext(CartStateContext);
   const [spinner, setSpinner] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
   const [showAlert, setAlert] = useState(false);
-  const {getCart} = useContext(CartContext);
+  const {getCart, setCartLength} = useContext(CartContext);
 
   const handleQuantityUpdate = async (type, id) => {
     setSpinner(true);
     const res = await QuantityUpdate(type, id);
     if (res == true) {
       await getCart();
+      await setCartLength();
       setSpinner(false);
     } else {
       setSpinner(false);
       alert('something went wrong');
     }
   };
-  const handleProceed = async () => {
+  const handleProceed = async mode => {
     const env = 'TEST';
     let res = await _startProcess(state.cart.total_amount);
 
@@ -58,7 +62,12 @@ export default function Cart({navigation}) {
       customerPhone: '9999999999',
       customerEmail: 'cashfree@cashfree.com',
     };
-    RNPgReactNativeSDK.startPaymentWEB(map, env, responseHandler);
+    if (mode == 'UPI') {
+      RNPgReactNativeSDK.startPaymentUPI(map, env, responseHandler);
+    }
+    if (mode == 'WEB') {
+      RNPgReactNativeSDK.startPaymentWEB(map, env, responseHandler);
+    }
   };
   var responseHandler = async result => {
     try {
@@ -103,6 +112,37 @@ export default function Cart({navigation}) {
             this.hideAlert();
           }}
         />
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(!modalVisible);
+          }}>
+          <View style={styles.centeredView}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalText}>Payment Mode</Text>
+              <View style={{flexDirection: 'row'}}>
+                <Pressable
+                  style={styles.button}
+                  onPress={() => {
+                    setModalVisible(!modalVisible);
+                    handleProceed('UPI');
+                  }}>
+                  <Text style={styles.textStyle}>UPI</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.button}
+                  onPress={() => {
+                    setModalVisible(!modalVisible);
+                    handleProceed('WEB');
+                  }}>
+                  <Text style={styles.textStyle}>Other Options</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
         <View style={styles.header}>
           <View style={{flexDirection: 'row'}}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -207,7 +247,11 @@ export default function Cart({navigation}) {
               </View>
             </View>
 
-            <TouchableOpacity onPress={handleProceed} style={styles.proceed}>
+            <TouchableOpacity
+              onPress={() => {
+                setModalVisible(true);
+              }}
+              style={styles.proceed}>
               <Text style={styles.proceedText}>Proceed to Payment</Text>
             </TouchableOpacity>
           </>
@@ -283,6 +327,48 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat-Bold',
     fontSize: 20,
     color: 'white',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 5,
+    padding: 10,
+    elevation: 2,
+    width: 120,
+    marginHorizontal: 5,
+    backgroundColor: 'coral',
+  },
+
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 15,
+    fontFamily: 'Montserrat-Bold',
   },
 });
 
