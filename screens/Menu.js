@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from 'react-native';
 import {BarIndicator} from 'react-native-indicators';
 import IconCart from 'react-native-vector-icons/Feather';
@@ -26,6 +27,7 @@ export default function Menu({route, navigation}) {
   const [branchDetail, setBranchDetail] = React.useState(null);
   const [categories, setCategories] = React.useState(null);
   const [products, setProducts] = React.useState(null);
+  const [refreshing, setRefreshing] = React.useState(false);
   const [selectedCategory, setSelectedCategory] = React.useState(null);
   const {branch} = route.params;
   const {state} = useContext(CartStateContext);
@@ -66,23 +68,35 @@ export default function Menu({route, navigation}) {
       alert('something went wrong');
     }
   };
-  useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      getCart();
-    });
-    return unsubscribe;
-  }, [navigation]);
+  // useEffect(() => {
+  //   // const unsubscribe = navigation.addListener('focus', () => {
+  //   getCart();
+  //   // });
+  //   // return unsubscribe;
+  // }, []);
 
   useEffect(() => {
     getMenu(branch.id).then(res => {
       setBranchDetail(res);
     });
   }, []);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    getMenu(branch.id).then(res => {
+      setBranchDetail(res);
+    });
+    setSelectedCategory(null);
+    setRefreshing(false);
+  }, []);
   useEffect(() => {
     let cats = branchDetail?.map(item => {
       return {id: item.id, image: item.image, name: item.name};
     });
     setCategories(cats);
+    if (cats) {
+      setSelectedCategory(cats[0].id);
+    }
   }, [branchDetail]);
   useEffect(() => {
     let initialProducts = branchDetail?.map(item => {
@@ -152,16 +166,20 @@ export default function Menu({route, navigation}) {
       </View>
     );
   };
+  const GetQuantity = ({id}) => {
+    let currentProduct = state.cart.data.filter(item => item.product_id == id);
+    return (
+      <Text style={foodStyle.btnText}>{currentProduct[0].order_quantity}</Text>
+    );
+  };
 
   const renderFoodItems = () => {
-    const getQuantity = id => {
-      let currentProduct = state.cart.data.filter(
-        item => item.product_id == id,
-      );
-      return currentProduct[0].order_quantity;
-    };
     return (
-      <ScrollView style={{marginBottom: state.cartLength ? 50 : 0}}>
+      <ScrollView
+        style={{marginBottom: state.cartLength ? 50 : 0}}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         {products?.map((val, index) => (
           <View style={foodStyle.container} key={index}>
             <View style={foodStyle.leftContainer}>
@@ -196,7 +214,7 @@ export default function Menu({route, navigation}) {
                       handleQuantityUpdate('MINUS', val.id);
                     }}
                   />
-                  <Text style={foodStyle.btnText}>{getQuantity(val.id)}</Text>
+                  <GetQuantity id={val.id} />
                   <Icon
                     name="plus"
                     size={15}
