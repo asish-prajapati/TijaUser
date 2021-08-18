@@ -89,12 +89,14 @@ export default function Menu({route, navigation}) {
     setSelectedCategory(null);
     setRefreshing(false);
   }, []);
-  useEffect(() => {
-    let cats = branchDetail?.map(item => {
+  useEffect(async () => {
+    let cats = [];
+    cats = await branchDetail?.map(item => {
       return {id: item.id, image: item.image, name: item.name};
     });
     setCategories(cats);
-    if (cats) {
+
+    if (!cats == undefined) {
       setSelectedCategory(cats[0].id);
     }
   }, [branchDetail]);

@@ -18,16 +18,20 @@ const QuantityUpdate = async (type, product_id) => {
 async function _startProcess(amount) {
   let orderId;
   let orderAmount = amount;
-  const apiKey = '837926cca92f4991890af0d3e29738'; // put your apiKey here
-  const apiSecret = '3335727db3e6d8bb263b7376e1bc947f462d1297'; // put your apiSecret here
+  let cfToken;
+  let customerName;
+  let customerPhone;
+  let customerEmail;
+  // const apiKey = '837926cca92f4991890af0d3e29738'; // put your apiKey here
+  // const apiSecret = '3335727db3e6d8bb263b7376e1bc947f462d1297'; // put your apiSecret here
 
-  const env = 'TEST'; // use "TEST" or "PROD"
-  var tokenUrl;
-  if (env === 'TEST') {
-    tokenUrl = 'https://test.cashfree.com/api/v2/cftoken/order'; //for TEST
-  } else {
-    tokenUrl = 'https://api.cashfree.com/api/v2/cftoken/order'; //for PROD
-  }
+  // const env = 'TEST'; // use "TEST" or "PROD"
+  // var tokenUrl;
+  // if (env === 'TEST') {
+  //   tokenUrl = 'https://test.cashfree.com/api/v2/cftoken/order'; //for TEST
+  // } else {
+  //   tokenUrl = 'https://api.cashfree.com/api/v2/cftoken/order'; //for PROD
+  // }
   let userToken = await AsyncStorage.getItem('token');
   let response = await axios.post(
     'http://143.110.244.110/tija/frontuser/requestaddcash',
@@ -37,31 +41,39 @@ async function _startProcess(amount) {
   response = response.data;
   if (response.success == true) {
     orderId = response.orderId;
+    cfToken = response.cftoken;
+    customerName = response.customerName;
+    customerPhone = response.customerPhone;
+    customerEmail = response.customerEmail;
     let orderApiMap = {
+      cfToken: cfToken,
       orderId: orderId,
-      orderAmount: orderAmount.toString(),
-      orderCurrency: 'INR',
+      orderAmount: orderAmount,
+      customerName: customerName,
+      customerPhone: customerPhone,
+      customerEmail: customerEmail,
     };
+    return orderApiMap;
 
-    const postParams = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-client-id': apiKey,
-        'x-client-secret': apiSecret,
-      },
-      body: JSON.stringify(orderApiMap),
-    };
+    // const postParams = {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'x-client-id': apiKey,
+    //     'x-client-secret': apiSecret,
+    //   },
+    //   body: JSON.stringify(orderApiMap),
+    // };
 
-    var cfToken;
-    try {
-      let response = await fetch(tokenUrl, postParams);
-      response = await response.json();
-      cfToken = response.cftoken;
-      return {cfToken: cfToken, orderId: orderId, orderAmount: orderAmount};
-    } catch (error) {
-      console.log(error);
-    }
+    // var cfToken;
+    // try {
+    //   let response = await fetch(tokenUrl, postParams);
+    //   response = await response.json();
+    //   cfToken = response.cftoken;
+    //   return {cfToken: cfToken, orderId: orderId, orderAmount: orderAmount};
+    // } catch (error) {
+    //   console.log(error);
+    // }
 
     // var responseHandler = async result => {
     //   try {
@@ -84,7 +96,7 @@ async function _startProcess(amount) {
     //   }
     // };
   } else {
-    alert('Something went wrong - Amount Error');
+    alert('Something went wrong - Amount Error', response);
   }
 }
 function startPayment(cfToken, orderId, orderAmount) {
@@ -110,17 +122,22 @@ function startPayment(cfToken, orderId, orderAmount) {
 const clearCartHandler = async (getCart, setSpinner) => {
   let userToken;
   setSpinner(true);
-  userToken = await AsyncStorage.getItem('token');
-  axios
-    .get('http://143.110.244.110/tija/frontuser/clearcart', {
-      headers: {Authorization: `Bearer ${userToken}`},
-    })
-
-    .then(res => {
-      alert(res.data.message);
-      getCart();
-      setSpinner(false);
-    });
+  try {
+    userToken = await AsyncStorage.getItem('token');
+    let response = await axios.get(
+      'http://143.110.244.110/tija/frontuser/clearcart',
+      {
+        headers: {Authorization: `Bearer ${userToken}`},
+      },
+    );
+    response = await response.data;
+    // alert(response.message);
+    getCart();
+    setSpinner(false);
+  } catch (error) {
+    alert(error);
+    setSpinner(false);
+  }
 };
 
 export {QuantityUpdate, _startProcess, clearCartHandler};

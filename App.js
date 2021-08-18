@@ -139,6 +139,14 @@ function App() {
   messaging().setBackgroundMessageHandler(async remoteMessage => {
     console.log('Message handled in the background!', remoteMessage);
   });
+  useEffect(() => {
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      alert(remoteMessage.notification.body);
+      console.log(remoteMessage.notification.body);
+    });
+
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     // Get the device token

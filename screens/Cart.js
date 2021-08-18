@@ -57,11 +57,12 @@ export default function Cart({navigation}) {
       orderCurrency: 'INR',
       orderNote: 'Test Note',
       notifyUrl: 'http://143.110.244.110/tija/frontuser/webhook_detail',
-      customerName: 'Cashfree User',
+      customerName: res.customerName,
       verifyExpiry: '100',
-      customerPhone: '9999999999',
-      customerEmail: 'cashfree@cashfree.com',
+      customerPhone: res.customerPhone.toString(),
+      customerEmail: res.customerEmail,
     };
+    console.log(map);
     if (mode == 'UPI') {
       RNPgReactNativeSDK.startPaymentUPI(map, env, responseHandler);
     }
@@ -72,7 +73,7 @@ export default function Cart({navigation}) {
   var responseHandler = async result => {
     try {
       result = JSON.parse(result);
-
+      console.log(result);
       navigation.navigate('PaymentStatus', result);
     } catch (error) {
       await console.log(error);
@@ -155,7 +156,7 @@ export default function Cart({navigation}) {
             <Text style={styles.title}>Cart</Text>
           </View>
 
-          {/* {state.cartLength ? (
+          {state.cartLength ? (
             <View style={styles.cartIcon}>
               <IconCart
                 name="cart-remove"
@@ -165,7 +166,7 @@ export default function Cart({navigation}) {
                 }}
               />
             </View>
-          ) : null} */}
+          ) : null}
         </View>
         {state.cartLength ? (
           <ScrollView>
