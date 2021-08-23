@@ -45,7 +45,7 @@ export default function History({navigation}) {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }>
-            {orders.length > 0 ? (
+            {orders?.length > 0 ? (
               orders.map((order, index) => (
                 <TouchableOpacity
                   key={index}

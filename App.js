@@ -42,6 +42,12 @@ function App() {
           userToken: action.token,
           isLoading: false,
         };
+      case 'RESET_TOKEN':
+        return {
+          ...prevState,
+          userToken: null,
+          isLoading: false,
+        };
       case 'SIGN_IN':
         return {
           ...prevState,
@@ -83,6 +89,9 @@ function App() {
       refreshToken: async data => {
         dispatch({type: 'RESTORE_TOKEN', token: 'newtoken'});
       },
+      resetToken: async data => {
+        dispatch({type: 'RESET_TOKEN'});
+      },
     }),
     [],
   );
@@ -111,13 +120,19 @@ function App() {
       getCart: async data => {
         let userToken;
         userToken = await AsyncStorage.getItem('token');
-        axios
-          .get('http://143.110.244.110/tija/frontuser/viewcart', {
-            headers: {Authorization: `Bearer ${userToken}`},
-          })
-          .then(res => {
-            dispatch({type: 'SET_CART', cart: res.data});
-          });
+        try {
+          axios
+            .get('http://143.110.244.110/tija/frontuser/viewcart', {
+              headers: {Authorization: `Bearer ${userToken}`},
+            })
+            .then(res => {
+              dispatch({type: 'SET_CART', cart: res.data});
+            });
+        } catch (err) {
+          if (err.response.status == 401) {
+            dispatch({type: 'RESET_TOKEN'});
+          }
+        }
       },
     }),
     [],

@@ -13,7 +13,7 @@ import {validateOTP} from '../helpers/authentication';
 
 export default function OTPScreen({route, navigation}) {
   const {signIn} = React.useContext(AuthContext);
-  const {mobile, tempuser, newuser} = route.params;
+  const {mobile, tempuser, newuser, name} = route.params;
   const [pin1, setPin1] = useState('');
   const [pin2, setPin2] = useState('');
   const [pin3, setPin3] = useState('');
@@ -25,7 +25,7 @@ export default function OTPScreen({route, navigation}) {
 
   const validateOtpHandler = () => {
     const otp = `${pin1}${pin2}${pin3}${pin4}`;
-    validateOTP(otp, tempuser, newuser, navigation, signIn);
+    validateOTP(otp, tempuser, newuser, navigation, name, signIn);
   };
 
   return (

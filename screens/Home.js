@@ -14,6 +14,8 @@ import {
 
 import {CartStateContext} from '../App';
 import {CartContext} from '../App';
+import {AuthContext} from '../App';
+
 import IconBell from 'react-native-vector-icons/Ionicons';
 import IconCart from 'react-native-vector-icons/Feather';
 import IconOffer from 'react-native-vector-icons/MaterialIcons';
@@ -25,6 +27,8 @@ export default function Home({navigation}) {
   const [branches, setBranches] = useState([]);
   const {state} = useContext(CartStateContext);
   const {getCart} = useContext(CartContext);
+  const {resetToken} = useContext(AuthContext);
+
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
@@ -33,7 +37,7 @@ export default function Home({navigation}) {
     setRefreshing(false);
   }, []);
   useEffect(() => {
-    getBranches().then(res => setBranches(res));
+    getBranches(resetToken).then(res => setBranches(res));
   }, []);
   useEffect(() => {
     getCart();
@@ -42,7 +46,7 @@ export default function Home({navigation}) {
   const renderHeader = () => {
     return (
       <View style={headerStyles.container}>
-        <TouchableOpacity style={headerStyles.notification}>
+        {/* <TouchableOpacity style={headerStyles.notification}>
           <IconBadge
             MainElement={
               <IconBell name="notifications-sharp" size={30} color="black" />
@@ -50,7 +54,7 @@ export default function Home({navigation}) {
             BadgeElement={<Text style={headerStyles.badgeElement}>{5}</Text>}
             IconBadgeStyle={headerStyles.bedgeIcon}
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         {/* <View style={headerStyles.headerTitleC}>
           <View style={headerStyles.headerTitlec}>
             <Text style={{...FONTS.h3}}>Tija IceCreames</Text>
@@ -88,7 +92,7 @@ export default function Home({navigation}) {
   };
 
   const menuCards = () => {
-    if (branches.length == 0) {
+    if (branches?.length == 0) {
       return <BarIndicator color="coral" />;
     } else {
       return (
@@ -328,7 +332,7 @@ const headerStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     height: 50,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   notification: {
     width: 50,
