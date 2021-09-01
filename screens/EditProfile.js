@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import AwesomeAlert from 'react-native-awesome-alerts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {AuthContext} from '../App';
 import {configureFonts, TextInput} from 'react-native-paper';
@@ -32,6 +33,9 @@ export default function PersonalDetail({navigation}) {
   const [email, setEmail] = useState('');
   const [image, setImage] = useState('');
   const [imagefile, setImagefile] = useState(null);
+  const [alert, setAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMsg, setAlertMsg] = useState('');
 
   const inputref = useRef(null);
   const {signIn} = React.useContext(AuthContext);
@@ -110,6 +114,20 @@ export default function PersonalDetail({navigation}) {
     <>
       <StatusBar backgroundColor="white" barStyle="dark-content" />
       <View style={styles.container}>
+      <AwesomeAlert
+                show={alert}
+                showProgress={false}
+                title={alertTitle}
+                message={alertMsg}
+                closeOnTouchOutside={true}
+                closeOnHardwareBackPress={false}
+                showCancelButton={false}
+                showConfirmButton={true}
+                confirmText=" OK "
+                onConfirmPressed={() => {
+                  setAlertType1(false);
+                }}
+              />
         <View style={styles.info}>
           <Text style={{fontFamily: 'Montserrat-Regular', marginBottom: 20}}>
             Personal Details

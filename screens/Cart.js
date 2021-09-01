@@ -156,7 +156,7 @@ export default function Cart({navigation}) {
             <Text style={styles.title}>Cart</Text>
           </View>
 
-          {state.cartLength ? (
+          {/* {state.cartLength ? (
             <View style={styles.cartIcon}>
               <IconCart
                 name="cart-remove"
@@ -166,7 +166,7 @@ export default function Cart({navigation}) {
                 }}
               />
             </View>
-          ) : null}
+          ) : null} */}
         </View>
         {state.cartLength ? (
           <ScrollView>

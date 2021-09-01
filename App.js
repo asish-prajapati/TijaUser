@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Tabs from './navigations/TabNavigator';
@@ -13,6 +13,7 @@ import {
   Cart,
 } from './screens';
 import MainLoader from './loaders/MainLoader';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -79,6 +80,9 @@ function App() {
   };
 
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const [alert, setAlert] = useState(false);
+  const [alertTitle, setAlertTitle] = useState('');
+  const [alertMsg, setAlertMsg] = useState('');
 
   const authContext = React.useMemo(
     () => ({
@@ -156,7 +160,10 @@ function App() {
   });
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
-      alert(remoteMessage.notification.body);
+      // alert(remoteMessage.notification.body);
+      setAlertTitle(remoteMessage.notification.title);
+      setAlertMsg(remoteMessage.notification.body);
+      setAlert(true);
       console.log(remoteMessage.notification.body);
     });
 
@@ -219,6 +226,20 @@ function App() {
         <AuthContext.Provider value={authContext}>
           <CartContext.Provider value={cartContext}>
             <CartStateContext.Provider value={{state}}>
+              <AwesomeAlert
+                show={alert}
+                showProgress={false}
+                title={alertTitle}
+                message={alertMsg}
+                closeOnTouchOutside={true}
+                closeOnHardwareBackPress={false}
+                showCancelButton={false}
+                showConfirmButton={true}
+                confirmText=" OK "
+                onConfirmPressed={() => {
+                  setAlert(false);
+                }}
+              />
               <Stack.Navigator screenOptions={{headerShown: false}}>
                 {state.userToken == null ? (
                   <>
