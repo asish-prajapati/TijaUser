@@ -114,20 +114,20 @@ export default function PersonalDetail({navigation}) {
     <>
       <StatusBar backgroundColor="white" barStyle="dark-content" />
       <View style={styles.container}>
-      <AwesomeAlert
-                show={alert}
-                showProgress={false}
-                title={alertTitle}
-                message={alertMsg}
-                closeOnTouchOutside={true}
-                closeOnHardwareBackPress={false}
-                showCancelButton={false}
-                showConfirmButton={true}
-                confirmText=" OK "
-                onConfirmPressed={() => {
-                  setAlertType1(false);
-                }}
-              />
+        <AwesomeAlert
+          show={alert}
+          showProgress={false}
+          title={alertTitle}
+          message={alertMsg}
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={false}
+          showConfirmButton={true}
+          confirmText=" OK "
+          onConfirmPressed={() => {
+            setAlertType1(false);
+          }}
+        />
         <View style={styles.info}>
           <Text style={{fontFamily: 'Montserrat-Regular', marginBottom: 20}}>
             Personal Details
